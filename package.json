@@ -1,6 +1,6 @@
 {
 	"name": "obby-cli",
-	"version": "0.3.0",
+	"version": "0.2.0",
 	"description": "Talk to OpenAI GPT-5 from your terminal via Vercel AI Gateway",
 	"type": "module",
 	"bin": {
