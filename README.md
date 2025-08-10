@@ -1,6 +1,6 @@
 ## obby-cli
 
-Talk to AI from your terminal via Vercel AI Gateway.
+Talk to OpenAI GPT-5 from your terminal via Vercel AI Gateway.
 
 ### Install
 
