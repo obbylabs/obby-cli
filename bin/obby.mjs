@@ -8,6 +8,15 @@ import openUrl from "open";
 const KEY_URL =
 	"https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%2Fapi-keys%3Futm_source%3Dai_gateway_landing_page&title=Get+an+API+Key";
 
+async function readStdinPrompt() {
+	let data = "";
+	process.stdin.setEncoding("utf8");
+	for await (const chunk of process.stdin) {
+		data += chunk;
+	}
+	return data.trim();
+}
+
 function printHelp() {
 	console.log(`
 obby - talk to AI from your terminal via Vercel AI Gateway
@@ -75,16 +84,10 @@ async function main() {
 	}
 
 	let prompt = positional.join(" ").trim();
-	if (!prompt) {
-		if (!process.stdin.isTTY) {
-			prompt = await new Promise((resolve) => {
-				let data = "";
-				process.stdin.setEncoding("utf8");
-				process.stdin.on("data", (chunk) => (data += chunk));
-				process.stdin.on("end", () => resolve(data.trim()));
-			});
-		}
+	if (!prompt && !process.stdin.isTTY) {
+		prompt = await readStdinPrompt();
 	}
+
 	if (!prompt) {
 		printHelp();
 		process.exit(1);
@@ -96,6 +99,11 @@ async function main() {
 
 	const modelId =
 		requestedModel || process.env.AI_GATEWAY_MODEL || "openai/gpt-5";
+
+	process.on("SIGINT", () => {
+		process.stdout.write("\n");
+		process.exit(130);
+	});
 
 	try {
 		const { textStream } = await streamText({

@@ -11,6 +11,10 @@
 		"start": "node ./bin/obby.mjs --help",
 		"test": "echo \"No tests yet\" && exit 0"
 	},
+	"homepage": "https://obby.dev",
+	"repository": {
+		"url": "https://github.com/obbylabs/obby-cli"
+	},
 	"keywords": [
 		"cli",
 		"ai",
