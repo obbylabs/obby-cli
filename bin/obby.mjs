@@ -35,7 +35,10 @@ Options:
   -m, --model          Specify AI model (default: openai/gpt-5)
   -h, --help           Show help message
 
-Get an API Key: ${KEY_URL}
+Get an API Key: https://vercel.com/ai-gateway
+
+After creating a key, set it in your shell.
+export AI_GATEWAY_API_KEY="YOUR_KEY"
 `);
 }
 
@@ -48,6 +51,9 @@ async function ensureApiKey() {
 	try {
 		await openUrl(KEY_URL);
 	} catch {}
+	console.error(
+		`\nNo API key configured. After creating one, set it like this:\n  export AI_GATEWAY_API_KEY=\"YOUR_KEY\"\n  # or for a single run:\n  AI_GATEWAY_API_KEY=YOUR_KEY obby \"your prompt\"\n`,
+	);
 	process.exitCode = 1;
 	process.exit(1);
 }
