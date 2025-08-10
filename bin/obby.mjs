@@ -14,10 +14,19 @@ obby - talk to AI from your terminal via Vercel AI Gateway
 
 Usage:
   obby "your prompt here"
+  obby hello
+  echo "explain this code" | obby
+  obby -m openai/gpt-oss-120b "who is rauchg"
 
 Env:
   AI_GATEWAY_API_KEY   Your Vercel AI Gateway API key (required)
   AI_GATEWAY_MODEL     Model id like 'openai/gpt-5' (default)
+
+Options:
+  -m, --model          Specify AI model (default: openai/gpt-5)
+  -h, --help           Show help message
+
+Get an API Key: ${KEY_URL}
 `);
 }
 
@@ -36,12 +45,46 @@ async function ensureApiKey() {
 
 async function main() {
 	const args = process.argv.slice(2);
-	if (args.length === 0 || ["-h", "--help"].includes(args[0])) {
-		printHelp();
-		process.exit(0);
+	let requestedModel = undefined;
+	const positional = [];
+	for (let i = 0; i < args.length; i += 1) {
+		const arg = args[i];
+		if (arg === "-h" || arg === "--help") {
+			printHelp();
+			process.exit(0);
+		}
+		if (arg === "-m" || arg === "--model") {
+			const next = args[i + 1];
+			if (!next) {
+				console.error("Missing value for -m/--model");
+				process.exit(1);
+			}
+			requestedModel = next;
+			i += 1;
+			continue;
+		}
+		if (arg.startsWith("--model=")) {
+			requestedModel = arg.split("=")[1];
+			continue;
+		}
+		if (arg.startsWith("-m=")) {
+			requestedModel = arg.split("=")[1];
+			continue;
+		}
+		positional.push(arg);
 	}
 
-	const prompt = args.join(" ").trim();
+	let prompt = positional.join(" ").trim();
+	if (!prompt) {
+		if (!process.stdin.isTTY) {
+			prompt = await new Promise((resolve) => {
+				let data = "";
+				process.stdin.setEncoding("utf8");
+				process.stdin.on("data", (chunk) => (data += chunk));
+				process.stdin.on("end", () => resolve(data.trim()));
+			});
+		}
+	}
 	if (!prompt) {
 		printHelp();
 		process.exit(1);
@@ -51,7 +94,8 @@ async function main() {
 
 	process.env.AI_GATEWAY_API_KEY = apiKey;
 
-	const modelId = process.env.AI_GATEWAY_MODEL || "openai/gpt-5";
+	const modelId =
+		requestedModel || process.env.AI_GATEWAY_MODEL || "openai/gpt-5";
 
 	try {
 		const { textStream } = await streamText({
